@@ -1,5 +1,8 @@
 #lang forge/froglet
 
+option run_sterling "vis.js"
+
+
 -- Boolean definition taken from physical keys HW
 abstract sig Boolean {}
 one sig True, False extends Boolean {}
@@ -13,7 +16,6 @@ sig Coord {
 -- A shape is a collection of offsets
 sig Shape {
     offsets : pfunc Coord -> Boolean
-
 }
 
 -- A placement represents a shape placed on the board at some anchor coord
@@ -89,13 +91,36 @@ pred wellformed {
         ((c1.x = c2.x) and (c1.y = c2.y)) => (c1 = c2)
     }
 
+    -- Placements actually appear on the board
+    all p: Placement | {
+        all off: Coord | {
+            (p.s.offsets[off] = True) => {
+                some c2: Coord | {
+                    c2.x = add[p.anchor.x, off.x]
+                    c2.y = add[p.anchor.y, off.y]
+                    Board.position[c2] = p
+                }
+            }
+        }
+    }
     
 }
 
 
+--#run {
+ --   wellformed
+--    some s: Shape | {
+--        #{c : Coord | s.offsets[c] = True} = 4
+--    }
+--} for exactly 1 Shape
+
 run {
     wellformed
+
+    #{c : Coord | some Board.position[c]} = 4
+
     some s: Shape | {
         #{c : Coord | s.offsets[c] = True} = 4
     }
-} for exactly 1 Shape
+
+} for exactly 1 Shape, 1 Placement
