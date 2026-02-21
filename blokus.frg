@@ -61,17 +61,21 @@ pred wellformed {
 
     -- offsets in a shape should not form a cycle
     all s: Shape | {
-        -- there should be no offsets in the shape whose next is the start
-        all offset: Offset | {
-            reachable[offset, s.start, next] implies offset.next != s.start
+        -- there should be no offsets in the shape who are reachable from each other
+        all off1, off2: Offset | {
+            (reachable[off1, s.start, next] and reachable[off2, s.start, next]) implies
+            not (reachable[off1, off2, next] and reachable[off2, off1, next])
         }
     }
 
     -- all offsets in a shape must be unique
     all s: Shape {
         all offset1, offset2: Offset | {
-            (reachable[offset1, s.start, next] and reachable[offset2, s.start, next] and offset1.pos.x = offset2.pos.x and offset1.pos.y = offset2.pos.y) implies
-            offset1 = offset2
+            -- IF both of the offsets are part of the shape
+            ((offset1 = s.start or reachable[offset1, s.start, next]) and (offset2 = s.start or reachable[offset2, s.start, next])) implies 
+            -- THEN we have the implication that IF the two offsets have the same coords, they must be the same
+            ((offset1.pos.x = offset2.pos.x and offset1.pos.y = offset2.pos.y) implies
+            offset1 = offset2)
         }
     }
 
@@ -174,7 +178,8 @@ pred wellformed {
     -- placments appear on the board
     all p : Placement | {
         all offset: Offset | {
-            reachable[offset, p.s.start, next] implies
+            -- offset reachable from start or offset = start
+            (offset = p.s.start or reachable[offset, p.s.start, next]) implies
             {
                 some c: Coord | {
                     c.x = add[p.anchor.x, offset.pos.x]
@@ -198,10 +203,10 @@ pred wellformed {
 run {
     wellformed
 
-    #{c : Coord | some Board.position[c]} = 3
+    #{c : Coord | some Board.position[c]} = 4
 
     some s: Shape | {
-        #{offset : Offset | reachable[offset, s.start, next] } = 3
+        #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 4
     }
 
 } for exactly 1 Shape, 1 Placement
