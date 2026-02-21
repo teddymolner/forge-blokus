@@ -147,11 +147,11 @@ pred wellformed {
                     -- Right
                     (off2.pos.x = add[off1.pos.x, 1] and off1.pos.y = off2.pos.y) or
                     -- Left
-                    (off2.pos.x = add[off1.pos.x, -1] and off1.pos.y = off2.pos.y) or
+                    (off2.pos.x = subtract[off1.pos.x, 1] and off1.pos.y = off2.pos.y) or
                     -- Bottom
                     (off1.pos.x = off2.pos.x and off2.pos.y = add[off1.pos.y, 1]) or
                     -- Top
-                    (off1.pos.x = off2.pos.x and off2.pos.y = add[off1.pos.y, -1])
+                    (off1.pos.x = off2.pos.x and off2.pos.y = subtract[off1.pos.y, 1])
                 )
             }
         )
@@ -203,10 +203,10 @@ pred wellformed {
 run {
     wellformed
 
-    #{c : Coord | some Board.position[c]} = 4
+    #{c : Coord | some Board.position[c]} = 7
 
     some s: Shape | {
-        #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 4
+        #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 7
     }
 
-} for exactly 1 Shape, 1 Placement
+} for exactly 1 Shape, 1 Placement, 5 Int, 7 Coord, 7 Offset
