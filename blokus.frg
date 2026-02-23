@@ -64,7 +64,7 @@ pred wellformed {
         -- there should be no offsets in the shape who are reachable from each other
         all off1, off2: Offset | {
             (reachable[off1, s.start, next] and reachable[off2, s.start, next]) implies
-            not (reachable[off1, off2, next] and reachable[off2, off1, next])
+            not (reachable[off1, off2, next] and reachable[off2, off1, next]) -- Why is this line "and"
         }
     }
 
@@ -81,9 +81,10 @@ pred wellformed {
 
     -- restrict to 3x3 shapes
     all s: Shape | {
-        all offset : Offset| {
-            -- if the offset is reachable from the start, needs to have valid coords
-            reachable[offset, s.start, next] implies 
+        all offset : Offset | {
+            -- if the offset is reachable from the start, needs to have valid coord
+            -- ADDED: also must have valid coords if it's the start
+            ((offset = s.start) or reachable[offset, s.start, next]) implies 
             (offset.pos.x >= 0 and offset.pos.x <= 2 and offset.pos.y >= 0 and offset.pos.y <= 2)
         }
     }
@@ -189,8 +190,44 @@ pred wellformed {
             }
         }
     }
+
+    -- NEW: every occupied cell must correspond to some shape's offset
+    all c: Coord | {
+        some Board.position[c] => {
+            some o: Offset | {
+                -- There is some offset which is either the start of the occupying shape or reachable
+                -- from the start of the occupying shape
+                ((o = Board.position[c].s.start) or (reachable[o, Board.position[c].s.start, next]))
+
+                -- and the offset must match
+                c.x = add[Board.position[c].anchor.x, o.pos.x]
+                c.y = add[Board.position[c].anchor.y, o.pos.y]
+            }
+        }
+    }
     
 }
+
+pred onePiece {
+    -- Exactly one placement on the board
+    all c1, c2: Coord | {
+        (some Board.position[c1] and some Board.position[c2]) => {
+            Board.position[c1] = Board.position[c2]
+        }
+    }
+    some c1: Coord | {
+        some Board.position[c1]
+    }
+}
+
+
+pred init {
+    -- The board is empty
+    all c: Coord | {
+        no Board.position[c]
+    }
+}
+
 
 
 --#run {
@@ -200,12 +237,24 @@ pred wellformed {
 --    }
 --} for exactly 1 Shape
 
+--run {
+--    wellformed
+--
+--    #{c : Coord | some Board.position[c]} = 7
+--
+--    some s: Shape | {
+--        #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 7
+--    }
+--
+--} for exactly 1 Shape, 1 Placement, 5 Int, 7 Coord, 7 Offset
+
 run {
     wellformed
+  //  init
+    onePiece
 
-    #{c : Coord | some Board.position[c]} = 7
-
-    some s: Shape | {
+    // Consider size 3 shapes
+    all s: Shape | {
         #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 7
     }
 
