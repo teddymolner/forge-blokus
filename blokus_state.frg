@@ -1,6 +1,6 @@
 #lang forge/froglet
 
-option run_sterling "vis.js"
+option run_sterling "vis_state.js"
 
 
 -- States represent each turn in the game
@@ -142,11 +142,11 @@ pred stateWellformed[s: State] {
         some s.position[c] => coveredByPlacement[c, s.position[c]]
     }
 
-    all p: Placement | {
-        all c: Coord | {
-            coveredByPlacement[c, p] => s.position[c] = p
-        }
-    }
+    --all p: Placement | {
+    --    all c: Coord | {
+    --        coveredByPlacement[c, p] => s.position[c] = p
+    --    }
+    --}
 }
 
 
@@ -210,5 +210,18 @@ run {
         stateWellformed[s1]
         stateWellformed[s2]
         step[s0,s1] and step[s1, s2]
+
+        -- State 1 places piece at origin
+        all c: Coord | {
+            ((c.x = 0) and (c.y = 0)) => {
+                some s1.position[c]
+            }
+        }
+
+
     }
-} for 5 Int, 36 Coord, 7 Offset, 2 Placement, 1 Shape, 3 State
+
+    --some s: Shape | {
+    --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
+    --}
+} for 5 Int, 36 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
