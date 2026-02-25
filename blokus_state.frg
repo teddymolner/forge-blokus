@@ -186,6 +186,53 @@ pred step[s0, s1: State] {
 }
 
 
+------ TESTS ------
+
+test suite for init {
+    test expect {
+        initMeansEmpty : {
+            wellformed => {all s: State | {
+                init[s] => (all c: Coord | {
+                    no s.position[c]
+                })}
+            }
+        } is checked
+    }
+}
+
+test suite for stateWellformed {
+     test expect {
+        stateWellformedRespectsCoverage : {
+            wellformed => {
+                all s: State | stateWellformed[s] => {
+                    all c: Coord | validCoord[c] => {
+                        some s.position[c] => {
+                            coveredByPlacement[c, s.position[c]]
+                        }
+                    }
+                }
+            }
+        } is checked
+    }
+}
+
+test suite for step {
+    test expect {
+        stepAlreadyFilledCellsNotCovered : {
+            all s0, s1: State | {
+                step[s0,s1] => {
+                    all p: Placement | {
+                        all c: Coord | validCoord[c] => {
+                            (no s0.position[c] and not coveredByPlacement[c, p]) => {
+                                no s1.position[c]
+                            }
+                        }
+                    }
+                }
+            }
+        } is checked
+    }
+}
 
 --#run {
  --   wellformed
@@ -256,6 +303,9 @@ pred step[s0, s1: State] {
 //     --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
 //     --}
 // } for exactly 5 Int, 16 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
+
+
+
 
 run {
     wellformed
