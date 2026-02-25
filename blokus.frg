@@ -64,7 +64,7 @@ pred wellformed {
         -- there should be no offsets in the shape who are reachable from each other
         all off1, off2: Offset | {
             (reachable[off1, s.start, next] and reachable[off2, s.start, next]) implies
-            not (reachable[off1, off2, next] and reachable[off2, off1, next]) -- Why is this line "and"
+            not (reachable[off1, off2, next] and reachable[off2, off1, next])
         }
     }
 
@@ -221,12 +221,12 @@ pred onePiece {
 }
 
 
-pred init {
-    -- The board is empty
-    all c: Coord | {
-        no Board.position[c]
-    }
-}
+// pred init {
+//     -- The board is empty
+//     all c: Coord | {
+//         no Board.position[c]
+//     }
+// }
 
 
 
@@ -247,6 +247,36 @@ pred init {
 --    }
 --
 --} for exactly 1 Shape, 1 Placement, 5 Int, 7 Coord, 7 Offset
+
+// tests
+NoSameCoords: assert {
+    all c1, c2: Coord | {
+        (c1.x = c2.x and c1.y = c2.y) => c1 = c2
+    }
+} is necessary for wellformed
+
+CoordsWithinBounds: assert {
+    all c: Coord | {
+        c.x >= 0 and c.y >= 0 and c.x < 6 and c.y < 6
+    }
+} is necessary for wellformed
+
+ValidShapeSize: assert {
+    -- all shapes are at most 3x3
+    all s: Shape| {
+        all off: Offset | {
+            reachable[off, s.start, next] => (off.pos.x >= 0 and off.pos.x < 3 and off.pos.y >= 0 and off.pos.y < 3)
+        }
+    }
+} is necessary for wellformed
+
+OnlyOnePlacement: assert {
+    all p1, p2: Placement | {
+        some c: Coord | {
+            (Board.position[c] = p1 and Board.position[c] = p2) => p1 = p2
+        }
+    }
+} is necessary for wellformed
 
 run {
     wellformed
