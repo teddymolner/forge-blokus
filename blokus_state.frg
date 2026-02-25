@@ -76,7 +76,7 @@ pred wellformed {
         -- there should be no offsets in the shape who are reachable from each other
         all off1, off2: Offset | {
             (reachable[off1, s.start, next] and reachable[off2, s.start, next]) implies
-            not (reachable[off1, off2, next] and reachable[off2, off1, next]) -- Why is this line "and"
+            not (reachable[off1, off2, next] and reachable[off2, off1, next]) -- Why is this line "and" -- its saying you cant A from B and also not B from A
         }
     }
 
@@ -180,8 +180,23 @@ pred step[s0, s1: State] {
             coveredByPlacement[c, p1] => s1.position[c] = p1
 
             -- non-covered cells are not changed
-            not coveredByPlacement[c, p1] => (s1.position[c] = s0.position[c])
+            (not coveredByPlacement[c, p1]) => (s1.position[c] = s0.position[c]) // frame
         }
+
+        -- make sure anchor point is connected to a diagonal of the previous state
+        all c : Coord | {
+            (some s0.position[c]) => (p1.anchor.x = add[c.x, 1] and p1.anchor.y = add[c.y, 1])
+        }
+
+        -- s0 and s1 have no adjacent coords
+        // all c: Coord | {
+        //     (some s0.position[c]) => (all c_adj : Coord | {
+        //         ((c.x = add[c_adj.x, 1] and c.y = c_adj.y) or
+        //         (c.x = subtract[c_adj.x, 1] and c.y = c_adj.y) or
+        //         (c.x = c_adj.x and c.y = add[c_adj.y, 1]) or
+        //         (c.x = c_adj.x and c.y = subtract[c_adj.y, 1])) implies no s1.position[c_adj]
+        //     })
+        // }
     }
 }
 
@@ -204,6 +219,20 @@ pred step[s0, s1: State] {
 --    }
 --
 --} for exactly 1 Shape, 1 Placement, 5 Int, 7 Coord, 7 Offset
+
+// run {
+//     wellformed
+//     some s0, s1: State | {
+//         init[s0]
+//         stateWellformed[s0]
+//         stateWellformed[s1]
+//         step[s0, s1]
+//     }
+// } for 5 Int, 36 Coord, 7 Offset, 2 Placement, 1 Shape, 2 State
+
+pred validCoord[c : Coord] {
+    (c.x < 3) and (c.x >= 0) and (c.y < 3) and (c.y >= 0)
+}
 
 run {
     wellformed
@@ -230,4 +259,4 @@ run {
     --some s: Shape | {
     --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
     --}
-} for 5 Int, 36 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
+} for 5 Int, 9 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
