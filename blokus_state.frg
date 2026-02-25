@@ -141,7 +141,7 @@ pred wellformed {
 
 pred stateWellformed[s: State] {
     -- Placements appear on board
-    all c: Coord | {
+    all c: Coord | validCoord[c] => {
         some s.position[c] => coveredByPlacement[c, s.position[c]]
     }
 
@@ -248,15 +248,38 @@ run {
             ((c.x = 0) and (c.y = 0)) => {
                 some s1.position[c]
             }
+
+            -- State 1 also has a piece touching at (1,1)
+            ((c.x = 1) and (c.y = 1)) => {
+                some s1.position[c]
+            }
         }
+
+        -- there is exactly one placement used in s1, and it covers exactly 3 cells
+        one p: Placement | {
+            all c: Coord | validCoord[c] => (some s1.position[c] <=> s1.position[c] = p)
+            #{c: Coord | validCoord[c] and s1.position[c] = p} = 3
+
+            -- p forms an L (not all in one row or one column)
+            let cells = {c: Coord | validCoord[c] and s1.position[c] = p} | {
+                not (
+                    -- all same x  (vertical line)
+                    (all c1, c2: cells | c1.x = c2.x)
+                    or
+                    -- all same y (horizontal line)
+                    (all c1, c2: cells | c1.y = c2.y)
+                )
+            }
+        }
+
 
         -- All shapes in S2 have size 3
         all c: Coord | validCoord[c] => {
-            some s2.position[c] => ((#{c1: Coord | s2.position[c1] = s2.position[c]}) = 2)
+            some s2.position[c] => ((#{c1: Coord | s2.position[c1] = s2.position[c]}) = 3)
         }
     }
 
     --some s: Shape | {
     --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
     --}
-} for 5 Int, 9 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
+} for exactly 5 Int, 9 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
