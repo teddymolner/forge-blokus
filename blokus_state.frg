@@ -46,7 +46,7 @@ pred coveredByPlacement[c: Coord, p: Placement] {
 }
 
 pred validCoord[c: Coord] {
-    (c.x < 3) and (c.x >= 0) and (c.y < 3) and (c.y >= 0)
+    (c.x < 4) and (c.x >= 0) and (c.y < 4) and (c.y >= 0)
 }
 -- We will look at 6x6 boards
 pred wellformed {
@@ -76,7 +76,7 @@ pred wellformed {
         -- there should be no offsets in the shape who are reachable from each other
         all off1, off2: Offset | {
             (reachable[off1, s.start, next] and reachable[off2, s.start, next]) implies
-            not (reachable[off1, off2, next] and reachable[off2, off1, next]) -- Why is this line "and" -- its saying you cant A from B and also not B from A
+            not (reachable[off1, off2, next] and reachable[off2, off1, next]) -- Why is this line "and"
         }
     }
 
@@ -180,23 +180,8 @@ pred step[s0, s1: State] {
             coveredByPlacement[c, p1] => s1.position[c] = p1
 
             -- non-covered cells are not changed
-            (not coveredByPlacement[c, p1]) => (s1.position[c] = s0.position[c]) // frame
+            not coveredByPlacement[c, p1] => (s1.position[c] = s0.position[c])
         }
-
-        -- make sure anchor point is connected to a diagonal of the previous state
-        all c : Coord | {
-            (some s0.position[c]) => (p1.anchor.x = add[c.x, 1] and p1.anchor.y = add[c.y, 1])
-        }
-
-        -- s0 and s1 have no adjacent coords
-        // all c: Coord | {
-        //     (some s0.position[c]) => (all c_adj : Coord | {
-        //         ((c.x = add[c_adj.x, 1] and c.y = c_adj.y) or
-        //         (c.x = subtract[c_adj.x, 1] and c.y = c_adj.y) or
-        //         (c.x = c_adj.x and c.y = add[c_adj.y, 1]) or
-        //         (c.x = c_adj.x and c.y = subtract[c_adj.y, 1])) implies no s1.position[c_adj]
-        //     })
-        // }
     }
 }
 
@@ -222,64 +207,77 @@ pred step[s0, s1: State] {
 
 // run {
 //     wellformed
-//     some s0, s1: State | {
+//     some s0, s1, s2: State | {
 //         init[s0]
 //         stateWellformed[s0]
 //         stateWellformed[s1]
-//         step[s0, s1]
-//     }
-// } for 5 Int, 36 Coord, 7 Offset, 2 Placement, 1 Shape, 2 State
+//         stateWellformed[s2]
+//         step[s0,s1] and step[s1, s2]
 
-pred validCoord[c : Coord] {
-    (c.x < 3) and (c.x >= 0) and (c.y < 3) and (c.y >= 0)
-}
+//         -- State 1 places piece at origin
+//         all c: Coord | validCoord[c] => {
+//             ((c.x = 0) and (c.y = 0)) => {
+//                 some s1.position[c]
+//             }
+
+//             -- State 1 also has a piece touching at (1,1)
+//             ((c.x = 1) and (c.y = 1)) => {
+//                 some s1.position[c]
+//             }
+//         }
+
+//        -- there is exactly one placement used in s1, and it covers exactly 3 cells
+//         one p: Placement | {
+//             all c: Coord | validCoord[c] => (some s1.position[c] <=> s1.position[c] = p)
+            
+//             #{c: Coord | validCoord[c] and s1.position[c] = p} = 3
+
+//             -- p forms an L (not all in one row or one column)
+//             let cells = {c: Coord | validCoord[c] and s1.position[c] = p} | {
+//                 not (
+//                     -- all same x  (vertical line)
+//                     (all c1, c2: cells | c1.x = c2.x)
+//                     or
+//                     -- all same y (horizontal line)
+//                     (all c1, c2: cells | c1.y = c2.y)
+//                 )
+//             }
+//         }
+
+//         -- All shapes in S2 have size 3
+//         all c: Coord | validCoord[c] => {
+//             some s2.position[c] => ((#{c1: Coord | s2.position[c1] = s2.position[c]}) = 3)
+//         }
+
+
+//     }
+
+//     --some s: Shape | {
+//     --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
+//     --}
+// } for exactly 5 Int, 16 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
 
 run {
     wellformed
-    some s0, s1, s2: State | {
+    some s0, s1, s2, s3, s4: State | {
         init[s0]
         stateWellformed[s0]
         stateWellformed[s1]
         stateWellformed[s2]
+        stateWellformed[s3]
+        stateWellformed[s4]
         step[s0,s1] and step[s1, s2]
+        step[s2,s3] and step[s3, s4]
 
         -- State 1 places piece at origin
         all c: Coord | validCoord[c] => {
             ((c.x = 0) and (c.y = 0)) => {
                 some s1.position[c]
             }
-
-            -- State 1 also has a piece touching at (1,1)
-            ((c.x = 1) and (c.y = 1)) => {
-                some s1.position[c]
-            }
-        }
-
-        -- there is exactly one placement used in s1, and it covers exactly 3 cells
-        one p: Placement | {
-            all c: Coord | validCoord[c] => (some s1.position[c] <=> s1.position[c] = p)
-            #{c: Coord | validCoord[c] and s1.position[c] = p} = 3
-
-            -- p forms an L (not all in one row or one column)
-            let cells = {c: Coord | validCoord[c] and s1.position[c] = p} | {
-                not (
-                    -- all same x  (vertical line)
-                    (all c1, c2: cells | c1.x = c2.x)
-                    or
-                    -- all same y (horizontal line)
-                    (all c1, c2: cells | c1.y = c2.y)
-                )
-            }
-        }
-
-
-        -- All shapes in S2 have size 3
-        all c: Coord | validCoord[c] => {
-            some s2.position[c] => ((#{c1: Coord | s2.position[c1] = s2.position[c]}) = 3)
         }
     }
 
     --some s: Shape | {
     --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
     --}
-} for exactly 5 Int, 9 Coord, 7 Offset, 2 Placement, 2 Shape, 3 State
+} for exactly 5 Int, 16 Coord, 10 Offset, 4 Placement, 4 Shape, 5 State

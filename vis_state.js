@@ -4,7 +4,7 @@
 // Renders a row of boards, one per State atom, using State.position : pfunc Coord -> Placement.
 
 function blokusVizAllStates6x6() {
-  const N = 3;
+  const N = 4;
 
   const css = `
     .blokus-wrap { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
