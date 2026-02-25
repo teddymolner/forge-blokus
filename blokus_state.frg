@@ -45,11 +45,14 @@ pred coveredByPlacement[c: Coord, p: Placement] {
     }
 }
 
+pred validCoord[c: Coord] {
+    (c.x < 3) and (c.x >= 0) and (c.y < 3) and (c.y >= 0)
+}
 -- We will look at 6x6 boards
 pred wellformed {
     -- Coordinate wellformedness
     all c: Coord {
-        (c.x < 6) and (c.x >= 0) and (c.y < 6) and (c.y >= 0)
+        validCoord[c]
     }
 
     -- Optimization: each offset has at most one predecessor
@@ -152,7 +155,7 @@ pred stateWellformed[s: State] {
 
 
 pred init[s: State] {
-    all c: Coord | {
+    all c: Coord | validCoord[c] => {
         no s.position[c]
     }
 }
@@ -162,7 +165,7 @@ pred step[s0, s1: State] {
         -- p1 will be the new placement for this transition
 
         -- GUARD:
-        all c: Coord | {
+        all c: Coord | validCoord[c] => {
             -- this placement did not already exist
 
             -- the coords covered by the new placement were not previously occupied
@@ -172,7 +175,7 @@ pred step[s0, s1: State] {
         -- ACTION:
 
         -- all coordinates covered by placement are now updated, and no others are
-        all c: Coord | {
+        all c: Coord | validCoord[c] => {
             -- newly covered cells become p1
             coveredByPlacement[c, p1] => s1.position[c] = p1
 
@@ -212,13 +215,16 @@ run {
         step[s0,s1] and step[s1, s2]
 
         -- State 1 places piece at origin
-        all c: Coord | {
+        all c: Coord | validCoord[c] => {
             ((c.x = 0) and (c.y = 0)) => {
                 some s1.position[c]
             }
         }
 
-
+        -- All shapes in S2 have size 3
+        all c: Coord | validCoord[c] => {
+            some s2.position[c] => ((#{c1: Coord | s2.position[c1] = s2.position[c]}) = 2)
+        }
     }
 
     --some s: Shape | {
