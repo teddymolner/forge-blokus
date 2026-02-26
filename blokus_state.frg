@@ -227,8 +227,22 @@ test suite for step {
                 }
             }
         } is checked
+        positionChangingIsUnsat : {
+            some s0, s1: State, c: Coord | {
+                validCoord[c]
+                stateWellformed[s0] and stateWellformed[s1]
+                step[s0, s1]
+                some s0.position[c]
+                some s1.position[c]
+                s1.position[c] != s0.position[c]
+            }
+        } is unsat
     }
+
+    
 }
+
+
 
 ------- RUNS -------
 
