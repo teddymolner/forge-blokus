@@ -218,21 +218,19 @@ test suite for stateWellformed {
 
 test suite for step {
     test expect {
-        stepAlreadyFilledCellsNotCovered : {
+        stepNeverChangesPreviousPositions : {
             all s0, s1: State | {
                 step[s0,s1] => {
-                    all p: Placement | {
-                        all c: Coord | validCoord[c] => {
-                            (no s0.position[c] and not coveredByPlacement[c, p]) => {
-                                no s1.position[c]
-                            }
-                        }
+                    all c: Coord | validCoord[c] => {
+                        (some s0.position[c]) => (s1.position[c] = s0.position[c])
                     }
                 }
             }
         } is checked
     }
 }
+
+------- RUNS -------
 
 --#run {
  --   wellformed
@@ -326,8 +324,8 @@ run {
             }
         }
     }
-
     --some s: Shape | {
     --    #{offset : Offset | (offset = s.start or reachable[offset, s.start, next]) } = 3
     --}
 } for exactly 5 Int, 16 Coord, 10 Offset, 4 Placement, 4 Shape, 5 State
+

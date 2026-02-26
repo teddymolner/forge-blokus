@@ -9,3 +9,8 @@ We made some key design choices as we went progressed through the model. Notably
 Another design choice was in how we decided to model the transition states. Since performance was a huge concern throughout the development of our project, we often had to write less constrained predicates that allowed more in order to keep our performance reasonable. This limited the scope of what we could do with our model, and perhaps expanding into relational forge would have allowed us to have better performance.
 
 Our predicates are overall standard with most transition models, with both a wellformed and wellformedState predicate ruling out degenerate cases. For our transition states, we have an init predicate to specify an empty board, and then a step predicate with the Guard, Action, and Frame structure. We have some helpful predicates like inShape and coveredByPlacement which iterate through a shape (using reachable with next) to avoid repeated work. These helper predicates are used within wellformed and wellformedState. We then fit together wellformed and wellformedState when running to get our sample game.
+
+# Tests
+We use similar predicates in blokus and blokus_state, with the main difference being many additional state-specific predicates in blokus_state. As such, we relegated all assert statements to blokus, and have several test expect blocks to test state-specific predicates.
+
+In blokus_state, we test the main three state-specific predicates: stateWellformed, init, and step. Each test verifies the main property we care about for that specific predicate. For example, with step, we care that once a position is filled, it can never be changed/removed in future states.
