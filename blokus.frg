@@ -249,6 +249,7 @@ pred onePiece {
 --} for exactly 1 Shape, 1 Placement, 5 Int, 7 Coord, 7 Offset
 
 // tests
+-- Wellformed
 NoSameCoords: assert {
     all c1, c2: Coord | {
         (c1.x = c2.x and c1.y = c2.y) => c1 = c2
@@ -277,6 +278,36 @@ OnlyOnePlacement: assert {
         }
     }
 } is necessary for wellformed
+
+BadShape: assert {
+    wellformed
+    -- non adjacent edges in shape
+    some s: Shape | {
+        s.start.next.pos.x = add[s.start.pos.x, 1]
+        s.start.next.pos.y = add[s.start.pos.y, 1]
+    }
+} is unsat
+
+-- onePiece
+NoPlacements: assert {
+    onePiece
+    all c: Coord | {
+        no Board.position[c]
+    }
+} is unsat
+
+TwoPlacements: assert {
+    onePiece
+    some disj c1, c2: Coord | {
+        (some Board.position[c1] and some Board.position[c2]) and Board.position[c1] != Board.position[c2]
+    }
+} is unsat
+
+OnePlacement: assert {
+    some c : Coord | {
+        some Board.position[c]
+    }
+} is necessary for onePiece
 
 run {
     wellformed
