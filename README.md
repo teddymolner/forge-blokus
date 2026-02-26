@@ -13,4 +13,4 @@ Our predicates are overall standard with most transition models, with both a wel
 # Tests
 We use similar predicates in blokus and blokus_state, with the main difference being many additional state-specific predicates in blokus_state. As such, we relegated all assert statements to blokus, and have several test expect blocks to test state-specific predicates.
 
-In blokus_state, we test the main three state-specific predicates: stateWellformed, init, and step. Each test verifies the main property we care about for that specific predicate. For example, with step, we care that once a position is filled, it can never be changed/removed in future states.
+In **blokus**, we run tests to verify our domain is correct. For example, we ensure that wellformed cannot be satisfied without having all coords be in the defined board bounds. In **blokus_state**, we test the main three state-specific predicates: stateWellformed, init, and step. Each test verifies the main property we care about for that specific predicate. For example, with step, we care that once a position is filled, it can never be changed/removed in future states.
